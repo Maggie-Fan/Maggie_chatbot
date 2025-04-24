@@ -125,7 +125,7 @@ def main():
     if st.session_state['lang_setting'] == "English":
         title_text = f"💬 {user_name}'s News Chatbot"
         desc_text = "Here’s a news article for you. Feel free to ask anything about it—just give it a try! (This is a simple chatbot that doesn’t use the OpenAI API, but gives you custom responses.)"
-        input_placeholder = "Enter any questions about the news article, or type 'exit' to finish."title_text = f"💬 {user_name}'s News Chatbot"
+        input_placeholder = "Enter any questions about the news article, or type 'exit' to finish."
 
     else:  # 繁體中文
         title_text = f"💬 {user_name} 新聞特派員"
