@@ -133,11 +133,6 @@ def main():
     st.title(title_text)
     st.write(desc_text)
 
-    # Placeholder for user input, based on selected language
-    placeholderstr = "請輸入關於本新聞的問題，或輸入離開來結束。" if st.session_state['lang_setting'] == "繁體中文" else "Enter any questions about the news article, or type 'exit' to finish."
-    user_input = st.text_input(placeholderstr)
-
-
 
     st_c_chat = st.container(border=True)
 
