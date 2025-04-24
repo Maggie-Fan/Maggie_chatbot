@@ -125,14 +125,6 @@ def main():
         with st_c_1:
             st.image("https://cafe24img.poxo.com/dinotaeng/web/product/medium/202305/d102e826d93d2d2c2a18a32f044959e4.png")
 
-        # 根據語言設定不同的顯示文字
-    if lang_setting == "English":
-        title_text = f"💬 {user_name}'s News Chatbot"
-        desc_text = "Here’s a news article for you. Feel free to ask anything about it—just give it a try! (This is a simple chatbot that doesn’t use the OpenAI API, but gives you custom responses.))"
-    else:  # 繁體中文
-        title_text = f"💬 {user_name} 新聞特派員"
-        desc_text = "小小新聞特派員上線，我提供了一則新聞，對於新聞內容有任何好奇的地方，可以盡量問我～我會盡力解答的！(這是一個不使用 OpenAI API 的簡易聊天機器人，提供客製化的回應。)"
-
 
     st_c_chat = st.container(border=True)
 
