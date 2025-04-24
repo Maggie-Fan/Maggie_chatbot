@@ -108,8 +108,6 @@ def main():
         page_icon="img/favicon.ico"
     )
 
-    # Show title and description.
-    st.title(f"💬 {user_name}'s Chatbot")
 
     with st.sidebar:
         selected_lang = st.selectbox("Language", ["English", "繁體中文"], index=1)
