@@ -124,21 +124,21 @@ def main():
     # 根據語言設定不同的顯示文字
     if st.session_state['lang_setting'] == "English":
         title_text = f"💬 {user_name}'s News Chatbot"
-        desc_text = "Here’s a news article for you. Feel free to ask anything about it—just give it a try! (This is a simple chatbot that doesn’t use the OpenAI API, but gives you custom responses.))"
+        desc_text = "Here’s a news article for you. Feel free to ask anything about it—just give it a try! (This is a simple chatbot that doesn’t use the OpenAI API, but gives you custom responses.)"
+        input_placeholder = "Enter any questions about the news article, or type 'exit' to finish."title_text = f"💬 {user_name}'s News Chatbot"
+
     else:  # 繁體中文
         title_text = f"💬 {user_name} 新聞特派員"
         desc_text = "小小新聞特派員上線，我提供了一則新聞，對於新聞內容有任何好奇的地方，可以盡量問我～我會盡力解答的！(這是一個不使用 OpenAI API 的簡易聊天機器人，提供客製化的回應。)"
+        input_placeholder = "請輸入關於本新聞的問題，或輸入離開來結束。"
     
+
+
+
     # Display title and description
     st.title(title_text)
     st.write(desc_text)
 
-    # 定義 placeholderstr（必須在使用之前）
-    placeholderstr = (
-        "請輸入關於本新聞的問題，或輸入離開來結束。" 
-        if st.session_state['lang_setting'] == "繁體中文" 
-        else "Enter any questions about the news article, or type 'exit' to finish."
-    )
 
 
     st_c_chat = st.container(border=True)
