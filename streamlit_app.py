@@ -4,6 +4,7 @@ import time
 import re
 
 
+
 user_name = "Maggie"
 user_image = "https://cafe24img.poxo.com/dinotaeng/web/product/medium/202305/d102e826d93d2d2c2a18a32f044959e4.png"
 
@@ -357,7 +358,7 @@ def main():
         st_c_chat.chat_message("assistant").write_stream(stream_data(response))
 
     
-    if prompt := st.chat_input(placeholder=placeholderstr, key="chat_bot"):
+    if prompt := st.chat_input(placeholder=input_placeholder, key="chat_bot"):
         chat(prompt)
 
 if __name__ == "__main__":
