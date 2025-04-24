@@ -112,6 +112,12 @@ def main():
 
     with st.sidebar:
         selected_lang = st.selectbox("Language", ["English", "繁體中文"], index=1)
+
+        # 每次改變語言都更新 session_state 並強制重整畫面
+        if 'lang_setting' not in st.session_state or selected_lang != st.session_state['lang_setting']:
+            st.session_state['lang_setting'] = selected_lang
+            st.rerun()
+
         if 'lang_setting' in st.session_state:
             lang_setting = st.session_state['lang_setting']
         else:
