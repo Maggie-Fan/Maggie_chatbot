@@ -196,8 +196,8 @@ def main():
                 elif re.search(r"(發布地點|地點是在哪|報導地點|發布地點是在哪)", prompt_lower):
                     return f"**地點**: {news_context_ch['location']}"
 
-                elif re.search(r"(摘要|重點整理|重點|簡短的摘要|統整|新聞大意|大概的內容|概述內容|新聞內容)", prompt_lower):
-                    return f"**摘要**: {news_context_ch['summary']}"
+                elif re.search(r"(摘要|重點整理|重點|簡短的摘要|統整|新聞大意|大概的內容|概述內容|新聞內容|這篇新聞在講什麼|內容|新聞是關於什麼)", prompt_lower):
+                    return f"**摘要內容**: {news_context_ch['summary']}"
 
                 elif re.search(r"(原因|事故的原因|事故原因|為什麼會發生|發生原因|肇事原因|原因是什麼|事故原因為何|造成事故的原因是什麼)", prompt_lower):
                     return f"**事故原因**: {news_context_ch['cause_of_incident']}"
@@ -366,6 +366,7 @@ def main():
     
     if prompt := st.chat_input(placeholder=input_placeholder, key="chat_bot"):
         chat(prompt)
+
 
 if __name__ == "__main__":
     main()
