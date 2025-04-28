@@ -76,20 +76,14 @@ st.plotly_chart(fig)
 
 
 # === chat_input ===
-if "chat_word" not in st.session_state:
-    st.session_state.chat_word = ""
+user_input = st.text_input("🔎 輸入一個詞，我會找出相關詞 (避免跳轉版)", key="text_input_word")
 
-word = st.chat_input("🔎 輸入一個詞，我會找出相關詞")
-
-if word:
-    st.session_state.chat_word = word
-
-if st.session_state.chat_word:
-    st.chat_message("user").write(st.session_state.chat_word)
-    if st.session_state.chat_word in model.wv:
-        similar = model.wv.most_similar(st.session_state.chat_word, topn=5)
-        st.chat_message("assistant").markdown("Top 5 相似詞：\n" + "\n".join([f"- {w} ({sim:.2f})" for w, sim in similar]))
+if user_input:
+    st.write(f"你輸入的詞： {user_input}")
+    if user_input in model.wv:
+        similar = model.wv.most_similar(user_input, topn=5)
+        st.markdown("Top 5 相似詞：\n" + "\n".join([f"- {w} ({sim:.2f})" for w, sim in similar]))
     else:
-        st.chat_message("assistant").write("這個詞不在語料庫中。")
+        st.write("❌ 這個詞不在語料庫中。")
 
 
