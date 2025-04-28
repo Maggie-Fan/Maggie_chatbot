@@ -26,12 +26,17 @@ sentences = [
 ]
 
 tokenized_sentences = [simple_preprocess(s) for s in sentences]
-model = Word2Vec(tokenized_sentences, vector_size=100, window=5, min_count=1, workers=4)
 
-# === 降維處理 ===
-word_vectors = np.array([model.wv[word] for word in model.wv.index_to_key])
-pca = PCA(n_components=2)
-reduced_vectors = pca.fit_transform(word_vectors)
+# === 使用 cache 避免重複訓練模型與降維 ===
+@st.cache_resource
+def get_model_and_vectors(tokenized_sentences):
+    model = Word2Vec(tokenized_sentences, vector_size=100, window=5, min_count=1, workers=4)
+    word_vectors = np.array([model.wv[word] for word in model.wv.index_to_key])
+    pca = PCA(n_components=2)
+    reduced_vectors = pca.fit_transform(word_vectors)
+    return model, reduced_vectors
+
+model, reduced_vectors = get_model_and_vectors(tokenized_sentences)
 
 # === 顏色設定 ===
 color_map = {i: c for i, c in enumerate(['red', 'blue', 'green', 'purple', 'orange', 'cyan', 'magenta', 'pink', 'yellow', 'brown'])}
@@ -42,41 +47,36 @@ for word in model.wv.index_to_key:
             word_colors.append(color_map[i])
             break
 
+# === 繪圖區塊，避免全頁刷新重繪 ===
+with st.container():
+    scatter = go.Scatter(
+        x=reduced_vectors[:, 0],
+        y=reduced_vectors[:, 1],
+        mode='markers+text',
+        text=model.wv.index_to_key,
+        textposition='top center',
+        marker=dict(color=word_colors, size=10),
+    )
 
-# === 畫圖主體 ===
-scatter = go.Scatter(
-    x=reduced_vectors[:, 0],
-    y=reduced_vectors[:, 1],
-    mode='markers+text',
-    text=model.wv.index_to_key,
-    textposition='top center',
-    marker=dict(color=word_colors, size=10),
-)
+    line_traces = []
+    for i, sentence in enumerate(tokenized_sentences):
+        vecs = [reduced_vectors[model.wv.key_to_index[word]] for word in sentence if word in model.wv]
+        if vecs:
+            line_trace = go.Scatter(
+                x=[v[0] for v in vecs],
+                y=[v[1] for v in vecs],
+                mode='lines',
+                line=dict(color=color_map[i], width=1),
+                name=f"Sentence {i+1}"
+            )
+            line_traces.append(line_trace)
 
+    fig = go.Figure(data=[scatter] + line_traces)
+    fig.update_layout(title="2D Visualization of Word Embeddings", width=900, height=700)
+    st.plotly_chart(fig)
 
-# === 加線條 ===
-line_traces = []
-for i, sentence in enumerate(tokenized_sentences):
-    vecs = [reduced_vectors[model.wv.key_to_index[word]] for word in sentence if word in model.wv]
-    if vecs:
-        line_trace = go.Scatter(
-            x=[v[0] for v in vecs],
-            y=[v[1] for v in vecs],
-            mode='lines',
-            line=dict(color=color_map[i], width=1),
-            name=f"Sentence {i+1}"
-        )
-        line_traces.append(line_trace)
-
-# === 畫圖 ===
-fig = go.Figure(data=[scatter] + line_traces)
-fig.update_layout(title="2D Visualization of Word Embeddings", width=900, height=700)
-st.plotly_chart(fig)
-
-
-
-# === chat_input ===
-user_input = st.text_input("🔎 輸入一個詞，我會找出相關詞 (避免跳轉版)", key="text_input_word")
+# === 輸入查詢區塊 ===
+user_input = st.text_input("🔎 輸入一個詞，我會找出相關詞 (穩定版)", key="word_query")
 
 if user_input:
     st.write(f"你輸入的詞： {user_input}")
