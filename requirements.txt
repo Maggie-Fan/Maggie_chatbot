@@ -1,2 +1,8 @@
 streamlit
 openai
+
+gensim
+scikit-learn
+nltk
+plotly
+pandas
