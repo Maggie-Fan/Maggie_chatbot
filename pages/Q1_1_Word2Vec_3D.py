@@ -25,14 +25,19 @@ sentences = [
 ]
 
 tokenized_sentences = [simple_preprocess(s) for s in sentences]
-model = Word2Vec(tokenized_sentences, vector_size=100, window=5, min_count=1, workers=4)
 
-# 降維
-word_vectors = np.array([model.wv[word] for word in model.wv.index_to_key])
-pca = PCA(n_components=3)
-reduced_vectors = pca.fit_transform(word_vectors)
+# === 使用 cache 儲存模型與降維結果 ===
+@st.cache_resource
+def get_model_and_vectors(tokenized_sentences):
+    model = Word2Vec(tokenized_sentences, vector_size=100, window=5, min_count=1, workers=4)
+    word_vectors = np.array([model.wv[word] for word in model.wv.index_to_key])
+    pca = PCA(n_components=3)
+    reduced_vectors = pca.fit_transform(word_vectors)
+    return model, reduced_vectors
 
-# 顏色與連線設定
+model, reduced_vectors = get_model_and_vectors(tokenized_sentences)
+
+# === 顏色設定 ===
 color_map = {i: c for i, c in enumerate(['red', 'blue', 'green', 'purple', 'orange', 'cyan', 'magenta', 'pink', 'yellow', 'brown'])}
 word_colors = []
 for word in model.wv.index_to_key:
@@ -41,51 +46,53 @@ for word in model.wv.index_to_key:
             word_colors.append(color_map[i])
             break
 
-# 主詞點圖
-scatter = go.Scatter3d(
-    x=reduced_vectors[:, 0],
-    y=reduced_vectors[:, 1],
-    z=reduced_vectors[:, 2],
-    mode='markers+text',
-    text=model.wv.index_to_key,
-    textposition='top center',
-    marker=dict(color=word_colors, size=4),
-    hovertemplate="Word: %{text}<br>Color: %{marker.color}"
-)
+# === 繪圖區塊 ===
+with st.container():
+    scatter = go.Scatter3d(
+        x=reduced_vectors[:, 0],
+        y=reduced_vectors[:, 1],
+        z=reduced_vectors[:, 2],
+        mode='markers+text',
+        text=model.wv.index_to_key,
+        textposition='top center',
+        marker=dict(color=word_colors, size=4),
+        hovertemplate="Word: %{text}<br>Color: %{marker.color}"
+    )
 
-# 加線條（範例挑部分句子）
-display_array = [False, True, False, False, True, False, False, False, False, True]
+    # 只顯示部分句子的連線
+    display_array = [False, True, False, False, True, False, False, False, False, True]
 
-line_traces = []
-for i, sentence in enumerate(tokenized_sentences):
-    if display_array[i]:
-        vecs = [reduced_vectors[model.wv.key_to_index[word]] for word in sentence if word in model.wv]
-        if vecs:
-            line_trace = go.Scatter3d(
-                x=[v[0] for v in vecs],
-                y=[v[1] for v in vecs],
-                z=[v[2] for v in vecs],
-                mode='lines',
-                line=dict(color=color_map[i], width=2, dash='solid'),
-                showlegend=False
-            )
-            line_traces.append(line_trace)
+    line_traces = []
+    for i, sentence in enumerate(tokenized_sentences):
+        if display_array[i]:
+            vecs = [reduced_vectors[model.wv.key_to_index[word]] for word in sentence if word in model.wv]
+            if vecs:
+                line_trace = go.Scatter3d(
+                    x=[v[0] for v in vecs],
+                    y=[v[1] for v in vecs],
+                    z=[v[2] for v in vecs],
+                    mode='lines',
+                    line=dict(color=color_map[i], width=2),
+                    showlegend=False
+                )
+                line_traces.append(line_trace)
 
-# 繪圖
-fig = go.Figure(data=[scatter] + line_traces)
-fig.update_layout(
-    scene=dict(xaxis_title="X", yaxis_title="Y", zaxis_title="Z"),
-    title="3D Visualization of Word Embeddings",
-    width=1000,
-    height=800
-)
-st.plotly_chart(fig)
+    fig = go.Figure(data=[scatter] + line_traces)
+    fig.update_layout(
+        scene=dict(xaxis_title="X", yaxis_title="Y", zaxis_title="Z"),
+        title="3D Visualization of Word Embeddings",
+        width=1000,
+        height=800
+    )
+    st.plotly_chart(fig)
 
-# Chat input
-if word := st.chat_input("🔎 輸入一個詞，我會找出相關詞（3D View）"):
-    st.chat_message("user").write(word)
-    if word in model.wv:
-        similar = model.wv.most_similar(word, topn=5)
-        st.chat_message("assistant").markdown("Top 5 相似詞：\n" + "\n".join([f"- {w} ({sim:.2f})" for w, sim in similar]))
+# === 查詢輸入區 ===
+user_input = st.text_input("🔎 輸入一個詞，我會找出相關詞 (3D View)", key="word_query_3d")
+
+if user_input:
+    st.write(f"你輸入的詞： {user_input}")
+    if user_input in model.wv:
+        similar = model.wv.most_similar(user_input, topn=5)
+        st.markdown("Top 5 相似詞：\n" + "\n".join([f"- {w} ({sim:.2f})" for w, sim in similar]))
     else:
-        st.chat_message("assistant").write("❌ 這個詞不在語料庫中。")
+        st.write("❌ 這個詞不在語料庫中。")

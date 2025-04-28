@@ -9,16 +9,16 @@ from gensim.parsing.preprocessing import remove_stopwords
 st.set_page_config(page_title="Q2 Skip-Gram Word2Vec", layout="wide")
 st.title("📘 Q2: Word2Vec - Skip-Gram")
 
-# === 模型參數 ===
+# === 模型參數設定 ===
 vector_size = 100
 window_size = 5
 min_count = 1
 workers = 4
 sg_flag = 1
 
-# === 輸入語料（BBC 原始文章）===
+# === 輸入語料 ===
 sentences = [
-   "Fifteen people in South Korea were injured, two of them seriously, after a pair of fighter jets accidentally dropped eight bombs in a civilian district on Thursday during a live-fire military exercise, local media reported",
+    "Fifteen people in South Korea were injured, two of them seriously, after a pair of fighter jets accidentally dropped eight bombs in a civilian district on Thursday during a live-fire military exercise, local media reported",
     "The incident involving the Air Force KF-16 aircraft, in the city of Pocheon near North Korea, was part of routine drills held by the South to maintain combat readiness against potential attacks from the North",
     "South Korea's Air Force said that it was investigating the incident and apologised for the damage, adding it would provide compensation to those affected",
     "While shells from live firing exercises sometimes land near civilian residences, they rarely cause injuries",
@@ -30,32 +30,40 @@ sentences = [
     "This comes at a time when the two countries are increasingly wary of the growing alliance between North Korea and Russia",
 ]
 
-# === Streamlit 控制選項 ===
+# === 停用詞選項 ===
 use_stopwords = st.toggle("🧹 Remove stopwords before training", value=True)
 
-# === 預處理句子 ===
+# === 預處理函數＋模型訓練，使用 cache 儲存 ===
+@st.cache_resource
+def train_skipgram_model(sentences, remove_sw):
+    if remove_sw:
+        tokenized = [simple_preprocess(remove_stopwords(sentence)) for sentence in sentences]
+    else:
+        tokenized = [simple_preprocess(sentence) for sentence in sentences]
+    model = Word2Vec(tokenized, vector_size=vector_size, window=window_size, min_count=min_count, workers=workers, sg=sg_flag)
+    return model
+
+model = train_skipgram_model(sentences, use_stopwords)
+
+# === 說明狀態 ===
 if use_stopwords:
-    st.caption("🔍 Using preprocessed sentences without stopwords.")
-    tokenized_sentences = [simple_preprocess(remove_stopwords(sentence)) for sentence in sentences]
+    st.caption("🔍 Training with sentences **without stopwords**.")
 else:
-    st.caption("📄 Using full sentences without removing stopwords.")
-    tokenized_sentences = [simple_preprocess(sentence) for sentence in sentences]
+    st.caption("📄 Training with **full sentences**.")
 
-# === 訓練模型 ===
-model = Word2Vec(tokenized_sentences, vector_size=vector_size, window=window_size, min_count=min_count, workers=workers, sg=sg_flag)
+# === 展示詞彙表 ===
+with st.expander("📘 Show Vocabulary List"):
+    st.write(model.wv.index_to_key)
 
-# === 顯示詞彙表 ===
-with st.expander("📘 Show vocabulary"):
-    st.write(list(model.wv.index_to_key))
+# === 查詢區塊，改用 text_input 避免跳轉 ===
+user_input = st.text_input("🔎 輸入一個詞，列出相似詞（使用 Skip-gram）", key="skipgram_query")
 
-# === 查詢詞相似詞 ===
-if word := st.chat_input("🔎 輸入一個詞，我會列出相似詞（使用 Skip-gram）"):
-    st.chat_message("user").write(word)
-
-    if word in model.wv:
-        similar = model.wv.most_similar(word, topn=5)
-        st.chat_message("assistant").markdown(
-            f"**Top 5 相似詞 for `{word}`:**\n" + "\n".join([f"- {w} ({sim:.2f})" for w, sim in similar])
+if user_input:
+    st.write(f"你輸入的詞： `{user_input}`")
+    if user_input in model.wv:
+        similar = model.wv.most_similar(user_input, topn=5)
+        st.markdown(
+            f"**Top 5 相似詞 for `{user_input}`:**\n" + "\n".join([f"- {w} ({sim:.2f})" for w, sim in similar])
         )
     else:
-        st.chat_message("assistant").write("❌ 這個詞不在語料庫中，請嘗試其他詞彙。")
+        st.warning("❌ 這個詞不在語料庫中，請嘗試其他詞彙。")
