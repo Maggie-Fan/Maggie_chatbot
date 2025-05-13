@@ -19,3 +19,10 @@ st.markdown("""
 
 👉 選擇任一功能後，可使用 chat_input 與模型互動
 """)
+
+
+#import streamlit as st
+
+#st.set_page_config(page_title="Maggie's Chatbot ", layout="wide")
+#st.title("👋 Welcome to Maggie's Chatbot")
+#st.write("請從左側選擇你要執行的功能頁面～")
